@@ -1236,6 +1236,8 @@ pub fn exec_verify(
             if options.log {
                 move_verus_log_files(&target.name);
             }
+        } else {
+            error!("Verification failed for target {}", target.name);
         }
 
         if options.count_line {
