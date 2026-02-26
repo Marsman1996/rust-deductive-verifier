@@ -4,9 +4,14 @@ use std::path::Path;
 use std::process::Command;
 
 /// Generate documentation for verification targets
-pub fn exec_doc(target: &str, verus_conds: bool, verus_conds_debug: bool) -> Result<(), DynError> {
+pub fn exec_doc(
+    target: &str,
+    verus_conds: bool,
+    verus_conds_debug: bool,
+    json_output: bool,
+) -> Result<(), DynError> {
     let target_to_use = verus::find_target(target)?;
-    generate_docs(&target_to_use, verus_conds, verus_conds_debug)?;
+    generate_docs(&target_to_use, verus_conds, verus_conds_debug, json_output)?;
     Ok(())
 }
 
@@ -15,6 +20,7 @@ fn generate_docs(
     target: &VerusTarget,
     verus_conds: bool,
     verus_conds_debug: bool,
+    json_output: bool,
 ) -> Result<(), DynError> {
     info!(
         "Generating documentation for {} with all dependencies...",
@@ -34,12 +40,19 @@ fn generate_docs(
                 dep_target,
                 verus_conds,
                 verus_conds_debug,
+                json_output,
                 &doc_output_dir,
             )?;
         }
     }
 
-    generate_single_target_doc(target, verus_conds, verus_conds_debug, &doc_output_dir)?;
+    generate_single_target_doc(
+        target,
+        verus_conds,
+        verus_conds_debug,
+        json_output,
+        &doc_output_dir,
+    )?;
 
     if verus_conds && !verus_conds_debug {
         run_verusdoc_postprocessor()?;
@@ -55,6 +68,7 @@ fn generate_single_target_doc(
     target: &VerusTarget,
     verus_conds: bool,
     verus_conds_debug: bool,
+    json_output: bool,
     doc_output_dir: &Path,
 ) -> Result<(), DynError> {
     info!(
@@ -147,6 +161,10 @@ fn generate_single_target_doc(
     // Set crate type and name
     cmd.arg("--crate-type=lib")
         .arg(format!("--crate-name={}", target.name.replace('-', "_")));
+
+    if json_output {
+        cmd.arg("--output-format").arg("json");
+    }
 
     // Set output directory
     cmd.arg("-o").arg(&doc_output_dir);

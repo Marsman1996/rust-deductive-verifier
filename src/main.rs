@@ -211,6 +211,13 @@ struct DocArgs {
         action = ArgAction::SetTrue,
         conflicts_with = "no_verus_conds")]
     verus_conds_debug: bool,
+
+    #[arg(
+        long = "json-output",
+        help = "Generate rustdoc output in JSON format",
+        default_value = "false",
+        action = ArgAction::SetTrue)]
+    json_output: bool,
 }
 
 #[derive(Parser, Debug)]
@@ -432,7 +439,12 @@ fn verify(args: &VerifyArgs) -> Result<(), DynError> {
 }
 
 fn doc(args: &DocArgs) -> Result<(), DynError> {
-    doc::exec_doc(&args.target, !args.no_verus_conds, args.verus_conds_debug)
+    doc::exec_doc(
+        &args.target,
+        !args.no_verus_conds,
+        args.verus_conds_debug,
+        args.json_output,
+    )
 }
 
 fn bootstrap(args: &BootstrapArgs) -> Result<(), DynError> {
