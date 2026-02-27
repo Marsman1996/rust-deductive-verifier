@@ -177,11 +177,7 @@ fn generate_single_target_doc(
 
     let status = cmd.status()?;
     if !status.success() {
-        warn!(
-            "rustdoc failed for target: {}, but continuing...",
-            target.name
-        );
-        return Ok(()); // Continue with other targets instead of failing
+        return Err(format!("rustdoc failed for target: {}", target.name).into());
     }
 
     info!(
