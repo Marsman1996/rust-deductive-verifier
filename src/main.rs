@@ -89,7 +89,9 @@ struct BootstrapArgs {
         long = "restart", 
         help = "Remove all toolchain and restart the bootstrap",
         default_value = "false", 
-        action = ArgAction::SetTrue)]
+        action = ArgAction::SetTrue,
+        conflicts_with = "upgrade"
+    )]
     restart: bool,
 
     #[arg(
@@ -109,8 +111,16 @@ struct BootstrapArgs {
     debug: bool,
 
     #[arg(
+        long = "upstream-verus",
+        help = "Pull the upstream verus-lang/verus instead of asterinas/verus",
+        default_value = "false",
+        action = ArgAction::SetTrue
+    )]
+    upstream_verus: bool,
+
+    #[arg(
         long = "branch",
-        help = "The branch name to pull (only used with --upgrade)",
+        help = "The branch name to pull",
         value_name = "BRANCH_NAME"
     )]
     branch: Option<String>,
@@ -453,6 +463,7 @@ fn bootstrap(args: &BootstrapArgs) -> Result<(), DynError> {
         restart: args.restart,
         branch: args.branch.clone(),
         force_reset: args.upgrade,
+        upstream_verus: args.upstream_verus,
     };
 
     if args.upgrade {
