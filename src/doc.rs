@@ -1,5 +1,6 @@
 use crate::verus::{self, DynError, VerusTarget};
 use colored::Colorize;
+use indexmap::IndexMap;
 use std::path::Path;
 use std::process::Command;
 
@@ -136,6 +137,24 @@ fn generate_single_target_doc(
         }
     }
 
+    let remote_deps = verus::get_remote_dependency(target, false)
+        .into_iter()
+        .map(|(name, path)| {
+            if let Some(base) = path.strip_suffix(".rmeta") {
+                let rlib_path = format!("{base}.rlib");
+                if Path::new(&rlib_path).exists() {
+                    return (name, rlib_path);
+                }
+            }
+            (name, path)
+        })
+        .collect::<IndexMap<_, _>>();
+    verus::check_externs(&remote_deps)?;
+    verus::cmd_push_externs(&mut cmd, &remote_deps);
+
+    let deps_dir = target_dir.join("release").join("deps");
+    cmd.arg("-L")
+        .arg(format!("dependency={}", deps_dir.display()));
     cmd.arg("-L").arg(format!("{}", verus_target_dir.display()));
     cmd.arg("-L").arg(format!("{}", target_dir.display()));
     cmd.arg("--edition=2021")
